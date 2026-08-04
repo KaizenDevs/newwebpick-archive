@@ -346,12 +346,33 @@ function loadIssue(num, item) {
     splashScreen: false,
     unmuteOverlay: 'hidden',
   });
+
+  setSidebarCollapsed(true);
 }
 
 // Toggle sidebar
+function setSidebarCollapsed(collapsed) {
+  sidebar.classList.toggle('collapsed', collapsed);
+  toggleBtn.textContent = collapsed ? '▶' : '◀';
+}
 toggleBtn.addEventListener('click', () => {
-  sidebar.classList.toggle('collapsed');
-  toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+  setSidebarCollapsed(!sidebar.classList.contains('collapsed'));
+});
+
+// Auto-hide sidebar: collapses once an issue is picked, and re-collapses
+// after a few seconds of inactivity if reopened. Hovering the sidebar (or
+// its collapsed edge tab) keeps it open / reveals it again.
+let sidebarHideTimer = null;
+function scheduleSidebarHide() {
+  clearTimeout(sidebarHideTimer);
+  if (!activeItem) return; // nothing loaded yet: keep it open
+  sidebarHideTimer = setTimeout(() => setSidebarCollapsed(true), 3000);
+}
+sidebar.addEventListener('mouseenter', () => clearTimeout(sidebarHideTimer));
+sidebar.addEventListener('mouseleave', scheduleSidebarHide);
+toggleBtn.addEventListener('mouseenter', () => {
+  if (sidebar.classList.contains('collapsed')) setSidebarCollapsed(false);
+  clearTimeout(sidebarHideTimer);
 });
 
 // Keep keyboard focus on player so SWF page-turn (left/right) keeps working.
