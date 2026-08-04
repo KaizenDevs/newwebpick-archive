@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewWebPick Archive</title>
+<script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #111;
+    color: #eee;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    position: relative;
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    background: #1a1a1a;
+    border-right: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    z-index: 10;
+  }
+  #sidebar.collapsed {
+    transform: translateX(-260px);
+  }
+
+  #sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+  #sidebar-header h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+  }
+  #sidebar-header p {
+    font-size: 11px;
+    color: #555;
+    margin-top: 3px;
+  }
+
+  #issue-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
+  #issue-list::-webkit-scrollbar { width: 4px; }
+  #issue-list::-webkit-scrollbar-track { background: transparent; }
+  #issue-list::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .issue-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .issue-item:hover { background: #252525; }
+  .issue-item.active {
+    background: #1e1e2e;
+    border-color: #4a4a8a;
+  }
+
+  .issue-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #222;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .issue-thumb-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: #2a2a2a;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #555;
+  }
+
+  .issue-info { flex: 1; min-width: 0; }
+  .issue-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 0.05em;
+  }
+  .issue-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Toggle button ── */
+  #toggle-btn {
+    position: absolute;
+    top: 50%;
+    right: -16px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 48px;
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 9px;
+    transition: background 0.15s, color 0.15s;
+    z-index: 11;
+  }
+  #toggle-btn:hover { background: #333; color: #aaa; }
+  #sidebar.collapsed #toggle-btn { right: -16px; }
+
+  /* ── Main player area ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #player-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0d0d;
+    position: relative;
+  }
+
+  #player-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  ruffle-player {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #333;
+    text-align: center;
+    pointer-events: none;
+  }
+  #placeholder svg { opacity: 0.3; }
+  #placeholder p { font-size: 14px; }
+
+  #now-playing {
+    padding: 10px 20px;
+    background: #161616;
+    border-top: 1px solid #222;
+    font-size: 12px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  #now-playing span { color: #aaa; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>NewWebPick</h1>
+    <p>Digital Design Magazine</p>
+  </div>
+  <div id="issue-list"></div>
+  <button id="toggle-btn" title="Toggle sidebar">◀</button>
+</nav>
+
+<main id="main">
+  <div id="player-wrap">
+    <div id="placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+      <p>Select an issue to begin</p>
+    </div>
+    <div id="player-container" style="display:none"></div>
+  </div>
+  <div id="now-playing">Now playing: <span id="playing-label">—</span></div>
+</main>
+
+<script>
+const ISSUES = [
+  "01","02","03","04","05","06","07","08","09","10",
+  "11","12","13","14","15","16","17","18","19","20",
+  "21","22","23","24","25","26","27","28","29","30",
+  "31","32","33","34","35","36","37","38","39","40",
+  "41","42","44"
+];
+
+const list = document.getElementById('issue-list');
+const playerContainer = document.getElementById('player-container');
+const placeholder = document.getElementById('placeholder');
+const playingLabel = document.getElementById('playing-label');
+const sidebar = document.getElementById('sidebar');
+const toggleBtn = document.getElementById('toggle-btn');
+
+let activeItem = null;
+let rufflePlayer = null;
+
+// Build sidebar items
+ISSUES.forEach(num => {
+  const item = document.createElement('div');
+  item.className = 'issue-item';
+  item.dataset.num = num;
+
+  const img = document.createElement('img');
+  img.className = 'issue-thumb';
+  img.src = `covers/cover_${num}.png`;
+  img.alt = `Issue ${num}`;
+  img.onerror = () => {
+    const ph = document.createElement('div');
+    ph.className = 'issue-thumb-placeholder';
+    ph.textContent = `#${num}`;
+    img.replaceWith(ph);
+  };
+
+  const info = document.createElement('div');
+  info.className = 'issue-info';
+  info.innerHTML = `<div class="issue-num">No. ${num}</div><div class="issue-label">NewWebPick ${num}</div>`;
+
+  item.append(img, info);
+  item.addEventListener('click', () => loadIssue(num, item));
+  list.appendChild(item);
+});
+
+function loadIssue(num, item) {
+  if (activeItem) activeItem.classList.remove('active');
+  activeItem = item;
+  item.classList.add('active');
+
+  playingLabel.textContent = `NewWebPick No. ${num}`;
+  placeholder.style.display = 'none';
+  playerContainer.style.display = 'block';
+  playerContainer.innerHTML = '';
+
+  const ruffle = window.RufflePlayer.newest();
+  rufflePlayer = ruffle.createPlayer();
+  rufflePlayer.style.width = '100%';
+  rufflePlayer.style.height = '100%';
+  playerContainer.appendChild(rufflePlayer);
+
+  rufflePlayer.load(`swf/newwebpick_${num}.swf`);
+}
+
+// Toggle sidebar
+toggleBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+  toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+});
+</script>
+</body>
+</html>

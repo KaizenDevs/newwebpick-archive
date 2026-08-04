@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+<style>body{margin:0;background:#111;}</style>
+</head>
+<body>
+<div id="player"></div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const num = params.get('n');
+  window.addEventListener('load', () => {
+    const ruffle = window.RufflePlayer.newest();
+    const player = ruffle.createPlayer();
+    player.style.width = '600px';
+    player.style.height = '450px';
+    document.getElementById('player').appendChild(player);
+    player.load({ url: `/site/swf/newwebpick_${num}.swf`, autoplay: "on", unmuteOverlay: "hidden" });
+    window._player = player;
+  });
+</script>
+</body>
+</html>
