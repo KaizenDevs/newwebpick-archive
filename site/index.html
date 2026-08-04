@@ -8,6 +8,12 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --sidebar-width: 260px;
+    --transition-speed: 0.3s;
+    --transition-ease: cubic-bezier(.4,0,.2,1);
+  }
+
   body {
     background: #111;
     color: #eee;
@@ -20,18 +26,24 @@
   /* ── Sidebar ── */
   #sidebar {
     position: relative;
-    width: 260px;
-    min-width: 260px;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
     height: 100vh;
     background: #1a1a1a;
     border-right: 1px solid #2a2a2a;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+    transition:
+      width var(--transition-speed) var(--transition-ease),
+      min-width var(--transition-speed) var(--transition-ease),
+      border-color var(--transition-speed) var(--transition-ease);
     z-index: 10;
   }
   #sidebar.collapsed {
-    transform: translateX(-260px);
+    width: 0;
+    min-width: 0;
+    border-right-color: transparent;
   }
 
   #sidebar-header {
@@ -119,9 +131,9 @@
 
   /* ── Toggle button ── */
   #toggle-btn {
-    position: absolute;
+    position: fixed;
     top: 50%;
-    right: -16px;
+    left: var(--sidebar-width);
     transform: translateY(-50%);
     width: 16px;
     height: 48px;
@@ -135,11 +147,11 @@
     justify-content: center;
     color: #666;
     font-size: 9px;
-    transition: background 0.15s, color 0.15s;
+    transition: left var(--transition-speed) var(--transition-ease), background 0.15s, color 0.15s;
     z-index: 11;
   }
   #toggle-btn:hover { background: #333; color: #aaa; }
-  #sidebar.collapsed #toggle-btn { right: -16px; }
+  #sidebar.collapsed #toggle-btn { left: 0; }
 
   /* ── Main player area ── */
   #main {
