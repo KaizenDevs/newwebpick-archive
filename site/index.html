@@ -195,18 +195,6 @@
   #placeholder svg { opacity: 0.3; }
   #placeholder p { font-size: 14px; }
 
-  #now-playing {
-    padding: 10px 20px;
-    background: #161616;
-    border-top: 1px solid #222;
-    font-size: 12px;
-    color: #555;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  #now-playing span { color: #aaa; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -230,7 +218,6 @@
     </div>
     <div id="player-container" style="display:none"></div>
   </div>
-  <div id="now-playing">Now playing: <span id="playing-label">—</span></div>
 </main>
 
 <script>
@@ -245,7 +232,6 @@ const ISSUES = [
 const list = document.getElementById('issue-list');
 const playerContainer = document.getElementById('player-container');
 const placeholder = document.getElementById('placeholder');
-const playingLabel = document.getElementById('playing-label');
 const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('toggle-btn');
 
@@ -283,7 +269,6 @@ function loadIssue(num, item) {
   activeItem = item;
   item.classList.add('active');
 
-  playingLabel.textContent = `NewWebPick No. ${num}`;
   placeholder.style.display = 'none';
   playerContainer.style.display = 'block';
   playerContainer.innerHTML = '';
