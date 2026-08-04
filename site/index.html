@@ -294,7 +294,11 @@ function loadIssue(num, item) {
   rufflePlayer.style.height = '100%';
   playerContainer.appendChild(rufflePlayer);
 
-  rufflePlayer.load(`swf/newwebpick_${num}.swf`);
+  rufflePlayer.load({
+    url: `swf/newwebpick_${num}.swf`,
+    letterbox: 'on',
+    backgroundColor: '#0d0d0d',
+  });
 }
 
 // Toggle sidebar
