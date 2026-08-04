@@ -214,6 +214,27 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  #fullscreen-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: rgba(20,20,20,0.7);
+    border: 1px solid #333;
+    border-radius: 6px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 16px;
+    z-index: 6;
+    transition: background 0.15s, color 0.15s;
+  }
+  #fullscreen-btn.visible { display: flex; }
+  #fullscreen-btn:hover { background: rgba(40,40,40,0.9); color: #eee; }
 </style>
 </head>
 <body>
@@ -237,6 +258,7 @@
     </div>
     <div id="player-container" style="display:none"></div>
     <div id="loader"><div id="loader-spinner"></div></div>
+    <button id="fullscreen-btn" title="Toggle fullscreen">⛶</button>
   </div>
 </main>
 
@@ -255,6 +277,8 @@ const placeholder = document.getElementById('placeholder');
 const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('toggle-btn');
 const loader = document.getElementById('loader');
+const playerWrap = document.getElementById('player-wrap');
+const fullscreenBtn = document.getElementById('fullscreen-btn');
 
 let activeItem = null;
 let rufflePlayer = null;
@@ -299,6 +323,7 @@ function loadIssue(num, item) {
   rufflePlayer.style.width = '100%';
   rufflePlayer.style.height = '100%';
   playerContainer.appendChild(rufflePlayer);
+  fullscreenBtn.classList.add('visible');
 
   loader.classList.add('active');
   rufflePlayer.addEventListener('loadeddata', () => loader.classList.remove('active'));
@@ -315,6 +340,15 @@ function loadIssue(num, item) {
 toggleBtn.addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
   toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+});
+
+// Fullscreen
+fullscreenBtn.addEventListener('click', () => {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    playerWrap.requestFullscreen();
+  }
 });
 </script>
 </body>
