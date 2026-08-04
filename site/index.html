@@ -322,17 +322,29 @@ function loadIssue(num, item) {
   rufflePlayer = ruffle.createPlayer();
   rufflePlayer.style.width = '100%';
   rufflePlayer.style.height = '100%';
+  rufflePlayer.tabIndex = 0;
   playerContainer.appendChild(rufflePlayer);
   fullscreenBtn.classList.add('visible');
+  rufflePlayer.focus();
 
   loader.classList.add('active');
-  rufflePlayer.addEventListener('loadeddata', () => loader.classList.remove('active'));
+  rufflePlayer.addEventListener('loadeddata', () => {
+    loader.classList.remove('active');
+    // Ruffle wires up its keyboard routing off a real focus *event* fired
+    // after its own init, not off focus *state*. If the element is already
+    // focused by the time that listener exists, no transition ever fires and
+    // key input silently never reaches the SWF. Forcing a blur-then-focus
+    // cycle here reproduces the manual "click away, click back" workaround.
+    rufflePlayer.blur();
+    requestAnimationFrame(() => rufflePlayer.focus());
+  });
 
   rufflePlayer.load({
     url: `swf/newwebpick_${num}.swf`,
     letterbox: 'on',
     backgroundColor: '#0d0d0d',
     splashScreen: false,
+    unmuteOverlay: 'hidden',
   });
 }
 
@@ -341,6 +353,11 @@ toggleBtn.addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
   toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
 });
+
+// Keep keyboard focus on player so SWF page-turn (left/right) keeps working.
+// Note: Ruffle ignores untrusted (JS-dispatched) KeyboardEvents, so the only
+// way to get arrows into the SWF is real DOM focus on the player element.
+playerContainer.addEventListener('click', () => rufflePlayer && rufflePlayer.focus());
 
 // Fullscreen
 fullscreenBtn.addEventListener('click', () => {
