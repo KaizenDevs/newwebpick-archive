@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Generate cover thumbnails for issues 01-16 matching the 17-44 design."""
+"""Generate cover thumbnails for issues 01-16 matching the 17-44 design.
+
+NOTE: this synthetic-cover flow is only for issues with no real art available.
+Before running it for a new issue, check the source .app bundle for a custom
+Finder icon first (resource fork on the bundle's `Icon` file, extract via
+`DeRez -only icns` + reassemble the hex, then `sips` to PNG/resize to 256x256).
+Real extracted art beats generated covers — use it when present (e.g. issue 43).
+"""
 
 import os
 import sys
