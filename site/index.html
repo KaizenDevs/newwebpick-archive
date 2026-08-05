@@ -336,7 +336,7 @@ function loadIssue(num, item) {
     // key input silently never reaches the SWF. Forcing a blur-then-focus
     // cycle here reproduces the manual "click away, click back" workaround.
     rufflePlayer.blur();
-    requestAnimationFrame(() => rufflePlayer.focus());
+    setTimeout(() => rufflePlayer.focus(), 0);
   });
 
   rufflePlayer.load({
@@ -387,6 +387,15 @@ fullscreenBtn.addEventListener('click', () => {
   } else {
     playerWrap.requestFullscreen();
   }
+});
+
+// Clicking the fullscreen button (or the browser's own fullscreen
+// transition) steals DOM focus away from the player, which silently kills
+// SWF arrow-key nav. Same blur/focus cycle as the initial load fixes it.
+document.addEventListener('fullscreenchange', () => {
+  if (!rufflePlayer) return;
+  rufflePlayer.blur();
+  setTimeout(() => rufflePlayer.focus(), 0);
 });
 </script>
 </body>
